@@ -7,5 +7,6 @@ import java.util.List;
 public record DatosLibro(
         String title,
         List<Autor> authors,
-        List<String> summaries
+        Integer download_count,
+        List<String> languages
 ) {}
