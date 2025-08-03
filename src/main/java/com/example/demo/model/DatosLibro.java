@@ -1,11 +1,11 @@
 package com.example.demo.model;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record DatosLibro(
-        @JsonAlias("Title") String titulo,
-        @JsonAlias("authors")Integer autores,
-        @JsonAlias("summaries") String resumen){
-}
+        String title,
+        List<Autor> authors,
+        List<String> summaries
+) {}
