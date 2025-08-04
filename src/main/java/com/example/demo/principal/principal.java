@@ -5,13 +5,18 @@ import com.example.demo.model.DatosLibro;
 import com.example.demo.model.RespuestaGutendex;
 import com.example.demo.service.ConsultaGutendex;
 import com.example.demo.service.ConvierteDatos;
+import com.example.demo.service.LibroService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
-
+@Component
 public class principal {
     private Scanner teclado = new Scanner(System.in);
     private final String URL_BASE = "https://gutendex.com/books/";
     private ConvierteDatos conversor = new ConvierteDatos();
+    @Autowired
+    private LibroService libroService;
 
     public void muestraElMenu() {
         int opcion = -1;
@@ -90,6 +95,9 @@ public class principal {
         String json = ConsultaGutendex.obtenerDatos(url);
         RespuestaGutendex respuesta = conversor.obtenerDatos(json, RespuestaGutendex.class);
         List<DatosLibro> libros = respuesta.results();
+        for (DatosLibro libro : libros) {
+            libroService.guardarLibroDesdeApi(libro);  // << GUARDADO AQUÍ
+        }
 
         if (libros.isEmpty()) {
             System.out.println("No se encontraron libros con ese título.");
