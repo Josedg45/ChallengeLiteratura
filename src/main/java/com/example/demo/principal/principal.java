@@ -46,10 +46,10 @@ public class principal {
                     listarAutoresRegistrados();
                     break;
                 case 4:
-                    System.out.println("Funcionalidad no implementada aún.");
+                    listarAutoresVivosEnAnio();
                     break;
                 case 5:
-                    System.out.println("Funcionalidad no implementada aún.");
+                    buscarPorIdioma();
                     break;
                 case 0:
                     System.out.println("Saliendo...");
@@ -171,6 +171,105 @@ public class principal {
             System.out.println("No se encontraron autores.");
         }
     }
+
+    private void buscarPorIdioma() {
+        Map<Integer, String> opcionesIdioma = Map.of(
+                1, "en", // Inglés
+                2, "es", // Español
+                3, "fr", // Francés
+                4, "de"  // Alemán
+        );
+
+        System.out.println("Seleccione un idioma:");
+        System.out.println("1 - Inglés");
+        System.out.println("2 - Español");
+        System.out.println("3 - Francés");
+        System.out.println("4 - Alemán");
+        System.out.print(">> ");
+        int opcion = teclado.nextInt();
+        teclado.nextLine();
+
+        if (!opcionesIdioma.containsKey(opcion)) {
+            System.out.println("Opción inválida.");
+            return;
+        }
+
+        String codigoIdioma = opcionesIdioma.get(opcion);
+        String url = URL_BASE + "?languages=" + codigoIdioma;
+
+        String json = ConsultaGutendex.obtenerDatos(url);
+        RespuestaGutendex respuesta = conversor.obtenerDatos(json, RespuestaGutendex.class);
+        List<DatosLibro> libros = respuesta.results();
+
+        if (libros.isEmpty()) {
+            System.out.println("No se encontraron libros en ese idioma.");
+            return;
+        }
+
+        for (DatosLibro libro : libros) {
+            System.out.println("\n📖 Título: " + libro.title());
+
+            if (libro.authors() != null && !libro.authors().isEmpty()) {
+                System.out.print("✍️  Autor(es): ");
+                List<String> nombres = libro.authors().stream().map(Autor::name).toList();
+                System.out.println(String.join(", ", nombres));
+            } else {
+                System.out.println("✍️  Autor(es): Desconocido");
+            }
+
+            System.out.println("⬇️  Descargas: " + libro.download_count());
+
+            if (libro.languages() != null && !libro.languages().isEmpty()) {
+                System.out.println("🌍 Idiomas: " + String.join(", ", libro.languages()));
+            } else {
+                System.out.println("🌍 Idiomas: No disponible");
+            }
+
+            System.out.println("--------------------------------------------------");
+        }
+    }
+
+    private void listarAutoresVivosEnAnio() {
+        System.out.print("Ingrese el año: ");
+        int anio = teclado.nextInt();
+        teclado.nextLine(); // limpiar buffer
+
+        String url = URL_BASE + "?page=1";
+        String json = ConsultaGutendex.obtenerDatos(url);
+        RespuestaGutendex respuesta = conversor.obtenerDatos(json, RespuestaGutendex.class);
+        List<DatosLibro> libros = respuesta.results();
+
+        if (libros == null || libros.isEmpty()) {
+            System.out.println("No se encontraron libros.");
+            return;
+        }
+
+        Set<String> autoresMostrados = new HashSet<>();
+
+        for (DatosLibro libro : libros) {
+            if (libro.authors() != null) {
+                for (Autor autor : libro.authors()) {
+                    Integer nacimiento = autor.birth_year();
+                    Integer muerte = autor.death_year();
+
+                    boolean vivoEnAnio = nacimiento != null && nacimiento <= anio &&
+                            (muerte == null || muerte >= anio);
+
+                    if (vivoEnAnio && autoresMostrados.add(autor.name())) {
+                        System.out.println("Autor: " + autor.name());
+                        System.out.println(" - Año de nacimiento: " + nacimiento);
+                        System.out.println(" - Año de fallecimiento: " + (muerte != null ? muerte : "Desconocido"));
+                        System.out.println();
+                    }
+                }
+            }
+        }
+
+        if (autoresMostrados.isEmpty()) {
+            System.out.println("No se encontraron autores vivos en el año " + anio + ".");
+        }
+    }
+
 
 
 }
